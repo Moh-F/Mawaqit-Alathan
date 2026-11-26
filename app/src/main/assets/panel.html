@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mawaqit Alathan</title>
+<style>
+:root{color-scheme:light dark;--bg:#0b1f19;--card:#12342a;--fg:#f1f5f2;--mut:#9fbfb3;--acc:#e8c766}
+@media (prefers-color-scheme:light){:root{--bg:#f4f7f5;--card:#fff;--fg:#10241d;--mut:#4b6b5f;--acc:#8a6d00}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif;padding:16px;max-width:760px;margin-inline:auto}
+h1{font-size:20px}h2{font-size:15px;color:var(--acc);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.row{background:var(--card);border-radius:12px;padding:12px 14px;margin:8px 0;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.row label{flex:1 1 180px}.row .v{color:var(--mut);min-width:3.5em;text-align:end;font-variant-numeric:tabular-nums}
+input[type=range]{flex:2 1 200px}input[type=text],select{flex:2 1 200px;padding:8px;border-radius:8px;border:1px solid var(--mut);background:transparent;color:inherit}
+input[type=color]{width:56px;height:36px;border:0;background:none}input[type=checkbox]{width:24px;height:24px}
+button,a.btn{background:var(--acc);color:#000;border:0;border-radius:10px;padding:10px 14px;text-decoration:none;font:inherit;cursor:pointer}
+#log{font:12px ui-monospace,monospace;background:#000;color:#ddd;border-radius:10px;padding:8px;height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.e{color:#ff6b6b}.w{color:#ffd166}#st{color:var(--mut);font-size:13px}
+</style></head><body>
+<h1 id="title">Mawaqit Alathan</h1><div id="st"></div><div id="form"></div>
+<h2 id="logh">Log</h2><div style="display:flex;gap:8px;margin-bottom:8px"><a class="btn" id="dl">Download</a><button id="clr">Clear view</button></div>
+<div id="log"></div>
+<script>
+const T=new URLSearchParams(location.search).get('token')||'';
+const L=(navigator.language||'en').slice(0,2);const lang=['ar','de'].includes(L)?L:'en';
+if(lang==='ar'){document.documentElement.dir='rtl';document.documentElement.lang='ar'}
+const tr=o=>o[lang]||o.en;
+const api=(p,opt)=>fetch(p+(p.includes('?')?'&':'?')+'token='+encodeURIComponent(T),opt).then(r=>r.json());
+let vals={},timers={};
+function save(k,v){vals[k]=v;clearTimeout(timers[k]);timers[k]=setTimeout(async()=>{
+ const r=await api('/api/settings',{method:'POST',body:JSON.stringify({[k]:v})});
+ document.getElementById('st').textContent='✓ '+new Date().toLocaleTimeString();
+ if(k==='preset'){vals=await api('/api/settings');render(window._schema)}},150)}
+function render(schema){const f=document.getElementById('form');f.innerHTML='';let g='';
+for(const x of schema){const gl=tr(x.group);if(gl!==g){g=gl;const h=document.createElement('h2');h.textContent=g;f.appendChild(h)}
+ const row=document.createElement('div');row.className='row';const lab=document.createElement('label');lab.textContent=tr(x.label);row.appendChild(lab);
+ const val=vals[x.key];let el,out;
+ if(x.type==='int'){el=document.createElement('input');el.type='range';el.min=x.min;el.max=x.max;el.step=x.step;el.value=val;
+  out=document.createElement('span');out.className='v';out.textContent=val+x.unit;el.oninput=()=>{out.textContent=el.value+x.unit;save(x.key,el.value)}}
+ else if(x.type==='bool'){el=document.createElement('input');el.type='checkbox';el.checked=val==='true';el.onchange=()=>save(x.key,String(el.checked))}
+ else if(x.type==='color'){el=document.createElement('input');el.type='color';el.value=val.toLowerCase();el.oninput=()=>save(x.key,el.value.toUpperCase())}
+ else if(x.type==='choice'){el=document.createElement('select');for(const o of x.options){const op=document.createElement('option');op.value=o.value;op.textContent=tr(o.label);if(o.value===val)op.selected=true;el.appendChild(op)}el.onchange=()=>save(x.key,el.value)}
+ else{el=document.createElement('input');el.type='text';el.value=val;el.maxLength=300;el.oninput=()=>save(x.key,el.value)}
+ row.appendChild(el);if(out)row.appendChild(out);f.appendChild(row)}}
+const logEl=document.getElementById('log');
+function addLog(raw){let o;try{o=JSON.parse(raw)}catch(e){return}const d=document.createElement('div');
+ d.className=o.l==='error'||o.l==='fatal'?'e':o.l==='warn'?'w':'';d.textContent=o.t+' ['+o.l+'] '+o.tag+': '+o.m+(o.st?'\n'+o.st:'');logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight}
+document.getElementById('clr').onclick=()=>logEl.innerHTML='';
+document.getElementById('dl').href='/download?token='+encodeURIComponent(T);
+document.getElementById('title').textContent={ar:'مواقيت الأذان — التحكم',en:'Mawaqit Alathan — Control',de:'Mawaqit Alathan — Steuerung'}[lang];
+document.getElementById('logh').textContent={ar:'سجل الأخطاء',en:'Log',de:'Protokoll'}[lang];
+(async()=>{window._schema=await api('/api/schema');vals=await api('/api/settings');render(window._schema);
+ new EventSource('/stream?token='+encodeURIComponent(T)).onmessage=e=>addLog(e.data)})();
+</script></body></html>

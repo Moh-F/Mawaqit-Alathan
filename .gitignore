@@ -1,0 +1,14 @@
+*.jks
+*.keystore
+*.p12
+*.enc
+*.b64
+key.properties
+local.properties
+.env
+.gradle/
+build/
+.idea/
+*.iml
+captures/
+.DS_Store

@@ -1,0 +1,64 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.10.2' }
+
+      - name: Check signing secrets exist
+        env:
+          KS: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KS" ]; then echo "::error::Missing secret KEYSTORE_B64. Run scripts/create_keystore.sh and add the 4 secrets (see README)."; exit 1; fi
+
+      - name: Decode keystore
+        env:
+          KS: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/release.p12"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
+
+      - name: Unit tests
+        run: gradle testDebugUnitTest --stacktrace
+
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          gradle assembleRelease -PVERSION_NAME="$VER" -PversionCode="${{ github.run_number }}" --stacktrace
+          cp app/build/outputs/apk/release/app-release.apk "Mawaqit-Alathan-v$VER.apk"
+
+      - name: Verify the APK is signed
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          "$APKSIGNER" verify --print-certs "Mawaqit-Alathan-v${GITHUB_REF_NAME#v}.apk" | head -5
+
+      - name: Create latest.json (used by the in-app updater)
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          APK="Mawaqit-Alathan-v$VER.apk"
+          SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          jq -n --arg v "$VER" --argjson b "${{ github.run_number }}" --arg sha "$SHA" \
+            --arg url "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK" \
+            --arg ar "$(cat release_notes/ar.md)" --arg en "$(cat release_notes/en.md)" --arg de "$(cat release_notes/de.md)" \
+            '{version:$v,build:$b,minBuild:1,mandatory:false,notes:{ar:$ar,en:$en,de:$de},assets:{android:{url:$url,sha256:$sha}}}' > latest.json
+          cat latest.json
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "Mawaqit-Alathan-v${GITHUB_REF_NAME#v}.apk" latest.json \
+            --draft --title "$GITHUB_REF_NAME" --notes-file release_notes/en.md
