@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Moh-F. All rights reserved. Proprietary source-available license, see LICENSE.
 package com.mohdev.alathan.ui
 
 import android.content.Context

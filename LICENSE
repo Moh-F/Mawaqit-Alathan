@@ -1,0 +1,30 @@
+Copyright (c) 2026 Moh-F. All rights reserved.
+
+PROPRIETARY SOURCE-AVAILABLE LICENSE (NOT open source)
+
+This repository is public so that it can be viewed and so that app updates can be
+delivered. Publication does NOT grant any license to the code, assets, name, icon or
+design, except as follows:
+
+1. You may view the source code and, as allowed by the GitHub Terms of Service, fork
+   the repository on GitHub for the sole purpose of viewing it or proposing changes
+   back to the owner.
+2. You may install and use the released app binaries (GitHub Releases) for personal,
+   non-commercial use, unmodified.
+3. Without the owner's prior written permission you may NOT: copy, modify, merge,
+   publish, distribute, sublicense, sell, rent or host the code or the app (in whole or
+   in part); create derivative works; remove copyright notices; re-sign or repackage the
+   app; use the name "Mawaqit Alathan", the icon or the branding; or use the code to
+   train or fine-tune machine-learning models.
+4. Contributions you send to the owner (pull requests, issues) may be used by the owner
+   without restriction and without compensation.
+5. Third-party components (AndroidX, Kotlin, Jetpack Compose and others) remain under
+   their own licenses.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. TO THE EXTENT PERMITTED
+BY LAW THE OWNER IS NOT LIABLE FOR ANY DAMAGES ARISING FROM ITS USE.
+
+"Mawaqit" is a name of its respective owner; this app is an independent project and is
+not affiliated with or endorsed by mawaqit.net.
+
+Permission requests: open a private security advisory / contact the owner via his GitHub profile.

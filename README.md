@@ -29,3 +29,6 @@ The repository must be public for the updater to read releases without a token.
 
 ## Privacy
 No data is collected. See [PRIVACY.md](PRIVACY.md). Standards status: [docs/STANDARDS-CHECKLIST.md](docs/STANDARDS-CHECKLIST.md).
+
+## License / Rights
+Copyright (c) 2026 Moh-F. All rights reserved. The source is public for viewing and for update delivery only; copying, modifying, redistributing or reusing it requires written permission. See [LICENSE](LICENSE), [SECURITY.md](SECURITY.md) and [docs/REPO-PROTECTION.md](docs/REPO-PROTECTION.md).
